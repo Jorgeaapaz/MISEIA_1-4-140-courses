@@ -1,65 +1,188 @@
-import Image from "next/image";
+import Link from 'next/link'
 
-export default function Home() {
+const features = [
+  {
+    icon: '◎',
+    title: 'Aprende a tu ritmo',
+    desc: 'Accede a los contenidos cuando quieras. Sin fechas límite, sin presión.',
+  },
+  {
+    icon: '⊞',
+    title: 'Contenido estructurado',
+    desc: 'Cursos organizados en secciones y recursos numerados para una progresión clara.',
+  },
+  {
+    icon: '◈',
+    title: 'Feedback directo',
+    desc: 'Deja comentarios en cada recurso. Tu opinión mejora el contenido del curso.',
+  },
+]
+
+export default function LandingPage() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div
+      style={{ background: 'var(--bg-deepest)', minHeight: '100vh', position: 'relative', overflow: 'hidden' }}
+    >
+      {/* Background glows */}
+      <div
+        style={{
+          position: 'absolute', top: '-120px', left: '50%', transform: 'translateX(-50%)',
+          width: '700px', height: '500px',
+          background: 'radial-gradient(ellipse at center, rgba(99,102,241,0.18) 0%, transparent 70%)',
+          pointerEvents: 'none',
+        }}
+      />
+      <div
+        style={{
+          position: 'absolute', bottom: '0', right: '-100px',
+          width: '400px', height: '400px',
+          background: 'radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%)',
+          pointerEvents: 'none',
+        }}
+      />
+
+      {/* Nav */}
+      <nav
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '20px 48px', borderBottom: '1px solid var(--border)',
+          background: 'rgba(15,15,20,0.8)', backdropFilter: 'blur(12px)',
+          position: 'sticky', top: 0, zIndex: 50,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div
+            style={{
+              width: '32px', height: '32px', borderRadius: '8px',
+              background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '16px', color: 'white',
+            }}
+          >C</div>
+          <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '18px', color: 'var(--text-primary)' }}>
+            CourseHub
+          </span>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+        <Link href="/login" className="btn-primary" style={{ fontSize: '13px', padding: '9px 20px' }}>
+          Acceder →
+        </Link>
+      </nav>
+
+      {/* Hero */}
+      <section style={{ textAlign: 'center', padding: '100px 24px 80px', position: 'relative', zIndex: 1 }}>
+        <div
+          className="badge badge-accent"
+          style={{ marginBottom: '24px', display: 'inline-flex' }}
+        >
+          Plataforma de aprendizaje
+        </div>
+
+        <h1
+          style={{
+            fontFamily: 'Syne, sans-serif', fontWeight: 800,
+            fontSize: 'clamp(2.8rem, 7vw, 5.5rem)',
+            lineHeight: 1.05, letterSpacing: '-0.03em',
+            color: 'var(--text-primary)', marginBottom: '24px',
+            maxWidth: '800px', margin: '0 auto 24px',
+          }}
+        >
+          Aprende lo que<br />
+          <span style={{ color: 'var(--accent-light)' }}>realmente importa</span>
+        </h1>
+
+        <p
+          style={{
+            fontSize: '1.1rem', color: 'var(--text-secondary)',
+            maxWidth: '520px', margin: '0 auto 40px', lineHeight: 1.7,
+          }}
+        >
+          CourseHub te ofrece una experiencia de aprendizaje estructurada y fluida.
+          Cursos, secciones y recursos — todo ordenado para tu progreso.
+        </p>
+
+        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <Link href="/login" className="btn-primary" style={{ fontSize: '15px', padding: '13px 32px' }}>
+            Comenzar gratis →
+          </Link>
+          <Link href="/login" className="btn-secondary" style={{ fontSize: '15px', padding: '13px 32px' }}>
+            Ver cursos
+          </Link>
+        </div>
+      </section>
+
+      {/* Features */}
+      <section
+        style={{
+          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gap: '20px', maxWidth: '1000px', margin: '0 auto 100px', padding: '0 24px',
+          position: 'relative', zIndex: 1,
+        }}
+      >
+        {features.map((f, i) => (
+          <div
+            key={i}
+            className="card"
+            style={{ padding: '32px', position: 'relative', overflow: 'hidden' }}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+            <div
+              style={{
+                position: 'absolute', top: 0, left: 0, right: 0, height: '2px',
+                background: 'linear-gradient(90deg, var(--accent), var(--accent-light))',
+                opacity: 0.6,
+              }}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+            <div
+              style={{
+                width: '44px', height: '44px', borderRadius: '10px',
+                background: 'var(--accent-dim)', border: '1px solid var(--accent-border)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '20px', color: 'var(--accent-light)', marginBottom: '20px',
+              }}
+            >
+              {f.icon}
+            </div>
+            <h3
+              style={{
+                fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '1.05rem',
+                color: 'var(--text-primary)', marginBottom: '10px',
+              }}
+            >
+              {f.title}
+            </h3>
+            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.65, margin: 0 }}>
+              {f.desc}
+            </p>
+          </div>
+        ))}
+      </section>
+
+      {/* CTA bottom */}
+      <section
+        style={{
+          textAlign: 'center', padding: '60px 24px 80px',
+          borderTop: '1px solid var(--border)', position: 'relative', zIndex: 1,
+        }}
+      >
+        <h2 style={{ fontFamily: 'Syne, sans-serif', fontSize: '1.8rem', marginBottom: '16px' }}>
+          Listo para empezar
+        </h2>
+        <p style={{ color: 'var(--text-secondary)', marginBottom: '28px', fontSize: '15px' }}>
+          Sin contraseñas. Solo tu email y un enlace mágico.
+        </p>
+        <Link href="/login" className="btn-primary" style={{ fontSize: '15px', padding: '13px 36px' }}>
+          Acceder con magic link →
+        </Link>
+      </section>
+
+      {/* Footer */}
+      <footer
+        style={{
+          textAlign: 'center', padding: '24px',
+          borderTop: '1px solid var(--border)',
+          color: 'var(--text-muted)', fontSize: '12px',
+        }}
+      >
+        © 2026 CourseHub — Plataforma de aprendizaje SaaS
+      </footer>
     </div>
-  );
+  )
 }
