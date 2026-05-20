@@ -21,7 +21,7 @@ export async function POST() {
     await db.collection<User>('users').insertMany([
       {
         _id: adminId,
-        email: 'admin@cursos.com',
+        email: 'admin@courses.com',
         role: 'admin',
         createdAt: new Date(),
       },
@@ -157,7 +157,7 @@ export async function POST() {
     return Response.json({
       message: 'Seed completado',
       data: {
-        users: ['admin@cursos.com (admin)', 'student@cursos.com (student)'],
+        users: ['admin@courses.com (admin)', 'student@cursos.com (student)'],
         courses: 2,
         sections: 5,
         resources: 6,
