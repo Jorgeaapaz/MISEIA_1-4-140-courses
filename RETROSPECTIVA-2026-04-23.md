@@ -20,11 +20,6 @@ Variables de entorno en `.env.local` (ya creado en el proyecto):
 ```env
 MONGODB_URI=mongodb://localhost:27017
 MONGODB_DB=saas-cursos
-AWS_USERNAME=minioadmin
-AWS_PASSWORD=minioadmin1234
-AWS_REGION=us-east-1
-AWS_URL=http://localhost:10000
-AWS_BUCKET=saas-cursos-bucket
 MAILHOG_HOST=localhost
 MAIL_PORT=1025
 NODE_ENV=development
@@ -35,7 +30,6 @@ JWT_SECRET=magik-link-dev-secret-2026
 Requisitos externos que deben estar corriendo:
 - **MongoDB** instalado localmente en `localhost:27017`
 - **Mailhog** en Docker, puerto SMTP `1025`, UI en `http://localhost:8025`
-- **Rustfs/MinIO** en Docker, puerto `10000` (para futuros recursos multimedia)
 
 ---
 
@@ -113,11 +107,6 @@ npm start
 # Mailhog (SMTP en 1025, UI en 8025)
 docker run -d -p 1025:1025 -p 8025:8025 mailhog/mailhog
 
-# Rustfs/MinIO (S3 compatible en 10000)
-docker run -d -p 10000:9000 -p 10001:9001 \
-  -e MINIO_ROOT_USER=minioadmin \
-  -e MINIO_ROOT_PASSWORD=minioadmin1234 \
-  minio/minio server /data --console-address ":9001"
 ```
 
 ---
@@ -132,7 +121,7 @@ docker run -d -p 10000:9000 -p 10001:9001 \
 | `http://localhost:3000/admin/courses` | Gestión de cursos |
 | `http://localhost:3000/dashboard` | Panel del estudiante |
 | `http://localhost:8025` | Mailhog UI (ver emails enviados) |
-| `http://localhost:10001` | MinIO Console |
+
 
 ### Endpoints API (curl)
 
