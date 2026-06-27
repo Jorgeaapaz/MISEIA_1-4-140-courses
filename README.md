@@ -361,3 +361,20 @@ Resources stored as raw Markdown (with embedded YouTube links, code fences, and 
 ## License
 
 MIT
+
+---
+
+## Updates — 2026-06-27
+
+### Compliance fixes applied
+- **`.env.example`** — added template with all required variables (no real secrets); `.gitignore` updated to allow it
+- **Architecture diagrams** — added Mermaid system component diagram and magic-link auth flow sequence diagram to README
+- **Jest unit tests** — `__tests__/lib/auth.test.ts` and `__tests__/lib/apiAuth.test.ts` (15 tests, all passing)
+- **Playwright E2E tests** — `e2e/auth.spec.ts` and `e2e/api.spec.ts` covering login, unauthorized access, and API validation
+- **`jest.config.ts`** and **`playwright.config.ts`** — test runner configs added
+- **`Dockerfile`** — multi-stage build (node:20-alpine builder → runner) with `output: 'standalone'` in next.config.ts
+- **`docker-compose.courses.yml`** — Traefik-integrated compose file for GCI VM deployment at `courses.deviaaps.com`
+- **`scripts/deploy.sh`** — automated deploy script via SSH to GCI VM
+- **`.github/workflows/ci-cd.yml`** — GitHub Actions pipeline: lint → test → build → deploy (push to master)
+- **`.gitlab-ci.yml`** — GitLab CI pipeline: test → build → deploy (push to master)
+- **`docs/compliance/`** — compliance report, PERT plan, and 7 disciplined prompt files
