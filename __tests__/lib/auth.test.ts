@@ -1,3 +1,4 @@
+import jwt from 'jsonwebtoken'
 import {
   generateMagicLinkToken,
   verifyMagicLinkToken,
@@ -20,7 +21,6 @@ describe('generateMagicLinkToken / verifyMagicLinkToken', () => {
 
   it('throws on an expired token', () => {
     // sign with immediate expiry
-    const jwt = require('jsonwebtoken')
     const expired = jwt.sign(
       { email: 'user@test.com', type: 'magic-link' },
       process.env.JWT_SECRET,

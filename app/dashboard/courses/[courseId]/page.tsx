@@ -248,7 +248,7 @@ function MarkdownContent({ content }: { content: string }) {
 }
 
 function renderMarkdown(md: string): string {
-  let html = md
+  const html = md
     // Escape existing HTML
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     // Code blocks (must be before inline code)
