@@ -244,6 +244,23 @@ curl -X POST http://localhost:3000/api/seed
 
 This creates an admin (`admin@coursehub.dev`) and a student (`student@coursehub.dev`) plus two full demo courses.
 
+### Run tests
+
+```bash
+# Unit tests (Jest) — no server needed
+npm test
+
+# Unit tests with coverage report
+npm run test:coverage
+
+# E2E tests (Playwright) — requires dev server running
+npm run dev &          # start dev server first
+npm run test:e2e
+
+# Install Playwright browsers (first time only)
+npx playwright install chromium
+```
+
 ### Build for production
 
 ```bash
