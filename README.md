@@ -261,12 +261,46 @@ npm run test:e2e
 npx playwright install chromium
 ```
 
-### Build for production
+### Build for production (local)
 
 ```bash
 npm run build
 npm start
 ```
+
+---
+
+## Production Deployment (GCI VM via Docker + Traefik)
+
+Live URL: **https://courses.deviaaps.com**
+
+### Prerequisites on the VM
+- Docker + Docker Compose
+- Traefik running on `miseia-net` network (wildcard cert `*.deviaaps.com`)
+- MongoDB accessible at `mongodb://admin:MongoAdmin2024!@34.174.56.186:27020/?authSource=admin`
+
+### Deploy steps
+
+```bash
+# 1. Copy env.production to project root (not committed — contains secrets)
+scp -i C:/ubuntuiso/.ssh/vboxuser docs/compliance/env.production \
+    gcvmuser@34.174.56.186:~/MISEIA1-4-140-courses/.env.production
+
+# 2. Copy docker-compose.courses.yml to VM
+scp -i C:/ubuntuiso/.ssh/vboxuser docker-compose.courses.yml \
+    gcvmuser@34.174.56.186:~/MISEIA1-4-140-courses/docker-compose.courses.yml
+
+# 3. Build image and deploy (automated)
+./scripts/deploy.sh
+
+# OR manually on the VM:
+ssh -i C:/ubuntuiso/.ssh/vboxuser gcvmuser@34.174.56.186
+docker build -t coursehub:latest .
+docker-compose -f docker-compose.courses.yml up -d
+```
+
+### CI/CD (GitHub Actions)
+The `.github/workflows/ci-cd.yml` pipeline runs tests → build → deploy automatically on push to `master`.
 
 ---
 
