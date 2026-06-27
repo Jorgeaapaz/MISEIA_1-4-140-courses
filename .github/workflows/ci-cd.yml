@@ -87,6 +87,12 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.VM_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
 
+      - name: Prepare remote directory
+        run: |
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
+            ${{ secrets.VM_USER }}@${{ secrets.VM_HOST }} \
+            "mkdir -p ~/MISEIA1-4-140-courses"
+
       - name: Transfer env file to VM
         run: |
           scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
