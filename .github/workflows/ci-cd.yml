@@ -63,48 +63,55 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Write production env file for transfer
+        run: |
+          cat > .env.production << 'EOF'
+          MONGODB_URI=${{ secrets.MONGODB_URI }}
+          MONGODB_DB=saas-cursos
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          MAILHOG_HOST=mailhog
+          MAIL_PORT=1025
+          NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
+          NODE_ENV=production
+          AWS_USERNAME=${{ secrets.AWS_USERNAME }}
+          AWS_PASSWORD=${{ secrets.AWS_PASSWORD }}
+          AWS_REGION=us-east-1
+          AWS_URL=http://rustfs:9000
+          AWS_BUCKET=saas-cursos-bucket
+          EOF
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.VM_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: Transfer env file to VM
+        run: |
+          scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
+            .env.production \
+            ${{ secrets.VM_USER }}@${{ secrets.VM_HOST }}:~/MISEIA1-4-140-courses/.env.production
+
       - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.VM_HOST }}
-          username: ${{ secrets.VM_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            set -e
+        run: |
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
+            ${{ secrets.VM_USER }}@${{ secrets.VM_HOST }} << 'REMOTE'
+          set -e
+          APP_DIR=~/MISEIA1-4-140-courses
+          mkdir -p "$APP_DIR"
+          cd "$APP_DIR"
 
-            APP_DIR=~/MISEIA1-4-140-courses
-            mkdir -p "$APP_DIR"
-            cd "$APP_DIR"
+          if [ -d ".git" ]; then
+            git pull origin master
+          else
+            git clone https://github.com/Jorgeaapaz/MISEIA_1-4-140-courses.git .
+          fi
 
-            # Pull latest code
-            if [ -d ".git" ]; then
-              git pull origin master
-            else
-              git clone https://github.com/${{ github.repository }}.git .
-            fi
+          docker build -t coursehub:latest .
+          docker compose -f docker-compose.courses.yml down || true
+          docker compose -f docker-compose.courses.yml up -d
 
-            # Write production env file
-            cat > .env.production << 'ENVEOF'
-            MONGODB_URI=${{ secrets.MONGODB_URI }}
-            MONGODB_DB=saas-cursos
-            JWT_SECRET=${{ secrets.JWT_SECRET }}
-            MAILHOG_HOST=mailhog
-            MAIL_PORT=1025
-            NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
-            NODE_ENV=production
-            AWS_USERNAME=${{ secrets.AWS_USERNAME }}
-            AWS_PASSWORD=${{ secrets.AWS_PASSWORD }}
-            AWS_REGION=us-east-1
-            AWS_URL=http://rustfs:9000
-            AWS_BUCKET=saas-cursos-bucket
-            ENVEOF
-
-            # Build Docker image
-            docker build -t coursehub:latest .
-
-            # Restart container
-            docker-compose -f docker-compose.courses.yml down || true
-            docker-compose -f docker-compose.courses.yml up -d
-
-            echo "Deploy complete — coursehub container status:"
-            docker ps | grep coursehub || echo "WARNING: container not found"
+          echo "Deploy complete — coursehub container status:"
+          docker ps | grep coursehub || echo "WARNING: container not found"
+          REMOTE
