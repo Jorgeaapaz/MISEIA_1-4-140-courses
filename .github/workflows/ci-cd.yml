@@ -87,11 +87,16 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.VM_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
 
-      - name: Prepare remote directory
+      - name: Clone or pull repo on VM
         run: |
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
             ${{ secrets.VM_USER }}@${{ secrets.VM_HOST }} \
-            "mkdir -p ~/MISEIA1-4-140-courses"
+            "APP_DIR=~/MISEIA1-4-140-courses; \
+             if [ -d \"\$APP_DIR/.git\" ]; then \
+               cd \"\$APP_DIR\" && git pull origin master; \
+             else \
+               git clone https://github.com/Jorgeaapaz/MISEIA_1-4-140-courses.git \"\$APP_DIR\"; \
+             fi"
 
       - name: Transfer env file to VM
         run: |
@@ -99,25 +104,15 @@ jobs:
             .env.production \
             ${{ secrets.VM_USER }}@${{ secrets.VM_HOST }}:~/MISEIA1-4-140-courses/.env.production
 
-      - name: Deploy via SSH
+      - name: Build and deploy via SSH
         run: |
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
             ${{ secrets.VM_USER }}@${{ secrets.VM_HOST }} << 'REMOTE'
           set -e
-          APP_DIR=~/MISEIA1-4-140-courses
-          mkdir -p "$APP_DIR"
-          cd "$APP_DIR"
-
-          if [ -d ".git" ]; then
-            git pull origin master
-          else
-            git clone https://github.com/Jorgeaapaz/MISEIA_1-4-140-courses.git .
-          fi
-
+          cd ~/MISEIA1-4-140-courses
           docker build -t coursehub:latest .
           docker compose -f docker-compose.courses.yml down || true
           docker compose -f docker-compose.courses.yml up -d
-
           echo "Deploy complete — coursehub container status:"
           docker ps | grep coursehub || echo "WARNING: container not found"
           REMOTE
