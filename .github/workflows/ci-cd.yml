@@ -95,6 +95,7 @@ jobs:
              if [ -d \"\$APP_DIR/.git\" ]; then \
                cd \"\$APP_DIR\" && git pull origin master; \
              else \
+               rm -rf \"\$APP_DIR\"; \
                git clone https://github.com/Jorgeaapaz/MISEIA_1-4-140-courses.git \"\$APP_DIR\"; \
              fi"
 
