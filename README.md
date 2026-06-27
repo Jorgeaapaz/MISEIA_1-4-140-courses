@@ -145,7 +145,7 @@ cd MISEIA_1-4-140-courses
 Copy the example variables and adjust as needed:
 
 ```bash
-cp .env.local.example .env.local
+cp .env.example .env.local
 ```
 
 ```env
