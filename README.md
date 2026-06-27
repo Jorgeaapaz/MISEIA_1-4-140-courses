@@ -85,7 +85,66 @@ courses/
 
 ---
 
-## Design Patterns / Architecture
+## Architecture
+
+### System Component Diagram
+
+```mermaid
+graph TD
+    Admin["👤 Admin\n(browser)"]
+    Student["👤 Student\n(browser)"]
+    GlobalCtx["GlobalContext\nlocalStorage JWT"]
+    NextPages["Next.js Pages\napp/ (React 19)"]
+    NextAPI["Next.js API Routes\napp/api/"]
+    AuthGuard["lib/apiAuth.ts\nrequireAuth / requireAdmin"]
+    LibAuth["lib/auth.ts\nJWT sign / verify"]
+    LibDB["lib/db.ts\nMongoDB Singleton"]
+    LibMail["lib/mail.ts\nNodemailer SMTP"]
+    MongoDB[(MongoDB\nsaas-cursos)]
+    Mailhog[Mailhog\nSMTP :1025]
+    RustFS[RustFS / S3\n:9000]
+
+    Admin -->|HTTPS| NextPages
+    Student -->|HTTPS| NextPages
+    NextPages <-->|React Context| GlobalCtx
+    GlobalCtx -->|Bearer token| NextAPI
+    NextPages -->|fetch| NextAPI
+    NextAPI --> AuthGuard
+    AuthGuard --> LibAuth
+    AuthGuard --> LibDB
+    LibDB --> MongoDB
+    NextAPI --> LibMail
+    LibMail --> Mailhog
+    NextAPI -.->|future: file upload| RustFS
+```
+
+### Magic Link Auth Flow
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant UI as Login Page
+    participant API as /api/auth/send-link
+    participant DB as MongoDB
+    participant Mail as Mailhog
+    participant Verify as /api/auth/verify
+    participant Ctx as GlobalContext
+
+    User->>UI: Enter email
+    UI->>API: POST { email }
+    API->>DB: Store magic_link JWT (15 min TTL)
+    API->>Mail: Send email with link
+    Mail-->>User: Email with /verify?token=...
+    User->>Verify: Click link (GET /verify)
+    Verify->>API: POST { token }
+    API->>DB: Check token (used=false, not expired)
+    API->>DB: Mark token used=true
+    API-->>Verify: { sessionJWT, user }
+    Verify->>Ctx: Save JWT to localStorage
+    Ctx-->>User: Redirect to /admin or /dashboard
+```
+
+## Design Patterns
 
 | Pattern | Where |
 |---|---|
@@ -145,7 +204,7 @@ cd MISEIA_1-4-140-courses
 Copy the example variables and adjust as needed:
 
 ```bash
-cp .env.local.example .env.local
+cp .env.example .env.local
 ```
 
 ```env
@@ -185,12 +244,63 @@ curl -X POST http://localhost:3000/api/seed
 
 This creates an admin (`admin@coursehub.dev`) and a student (`student@coursehub.dev`) plus two full demo courses.
 
-### Build for production
+### Run tests
+
+```bash
+# Unit tests (Jest) — no server needed
+npm test
+
+# Unit tests with coverage report
+npm run test:coverage
+
+# E2E tests (Playwright) — requires dev server running
+npm run dev &          # start dev server first
+npm run test:e2e
+
+# Install Playwright browsers (first time only)
+npx playwright install chromium
+```
+
+### Build for production (local)
 
 ```bash
 npm run build
 npm start
 ```
+
+---
+
+## Production Deployment (GCI VM via Docker + Traefik)
+
+Live URL: **https://courses.deviaaps.com**
+
+### Prerequisites on the VM
+- Docker + Docker Compose
+- Traefik running on `miseia-net` network (wildcard cert `*.deviaaps.com`)
+- MongoDB accessible at `mongodb://admin:MongoAdmin2024!@34.174.56.186:27020/?authSource=admin`
+
+### Deploy steps
+
+```bash
+# 1. Copy env.production to project root (not committed — contains secrets)
+scp -i C:/ubuntuiso/.ssh/vboxuser docs/compliance/env.production \
+    gcvmuser@34.174.56.186:~/MISEIA1-4-140-courses/.env.production
+
+# 2. Copy docker-compose.courses.yml to VM
+scp -i C:/ubuntuiso/.ssh/vboxuser docker-compose.courses.yml \
+    gcvmuser@34.174.56.186:~/MISEIA1-4-140-courses/docker-compose.courses.yml
+
+# 3. Build image and deploy (automated)
+./scripts/deploy.sh
+
+# OR manually on the VM:
+ssh -i C:/ubuntuiso/.ssh/vboxuser gcvmuser@34.174.56.186
+docker build -t coursehub:latest .
+docker-compose -f docker-compose.courses.yml up -d
+```
+
+### CI/CD (GitHub Actions)
+The `.github/workflows/ci-cd.yml` pipeline runs tests → build → deploy automatically on push to `master`.
 
 ---
 
@@ -251,3 +361,20 @@ Resources stored as raw Markdown (with embedded YouTube links, code fences, and 
 ## License
 
 MIT
+
+---
+
+## Updates — 2026-06-27
+
+### Compliance fixes applied
+- **`.env.example`** — added template with all required variables (no real secrets); `.gitignore` updated to allow it
+- **Architecture diagrams** — added Mermaid system component diagram and magic-link auth flow sequence diagram to README
+- **Jest unit tests** — `__tests__/lib/auth.test.ts` and `__tests__/lib/apiAuth.test.ts` (15 tests, all passing)
+- **Playwright E2E tests** — `e2e/auth.spec.ts` and `e2e/api.spec.ts` covering login, unauthorized access, and API validation
+- **`jest.config.ts`** and **`playwright.config.ts`** — test runner configs added
+- **`Dockerfile`** — multi-stage build (node:20-alpine builder → runner) with `output: 'standalone'` in next.config.ts
+- **`docker-compose.courses.yml`** — Traefik-integrated compose file for GCI VM deployment at `courses.deviaaps.com`
+- **`scripts/deploy.sh`** — automated deploy script via SSH to GCI VM
+- **`.github/workflows/ci-cd.yml`** — GitHub Actions pipeline: lint → test → build → deploy (push to master)
+- **`.gitlab-ci.yml`** — GitLab CI pipeline: test → build → deploy (push to master)
+- **`docs/compliance/`** — compliance report, PERT plan, and 7 disciplined prompt files

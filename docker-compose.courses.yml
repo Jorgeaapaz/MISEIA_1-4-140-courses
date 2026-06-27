@@ -1,0 +1,19 @@
+networks:
+  miseia-net:
+    external: true
+
+services:
+  coursehub:
+    image: coursehub:latest
+    container_name: coursehub
+    restart: unless-stopped
+    env_file: .env.production
+    networks:
+      - miseia-net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.coursehub.rule=Host(`courses.deviaaps.com`)"
+      - "traefik.http.routers.coursehub.entrypoints=websecure"
+      - "traefik.http.routers.coursehub.tls=true"
+      - "traefik.http.routers.coursehub.tls.certresolver=cloudflare"
+      - "traefik.http.services.coursehub-svc.loadbalancer.server.port=30001"

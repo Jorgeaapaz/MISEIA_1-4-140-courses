@@ -1,0 +1,110 @@
+name: CI/CD — Test, Build & Deploy
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  # ── Job 1: Lint + Unit Tests ────────────────────────────────────────────────
+  test:
+    name: Lint & Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run Jest unit tests
+        run: npm test
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET || 'test-secret-for-ci-minimum-32-chars' }}
+
+  # ── Job 2: Production Build ─────────────────────────────────────────────────
+  build:
+    name: Production Build
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Next.js app
+        run: NODE_ENV=production npm run build
+        env:
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+
+  # ── Job 3: Deploy to GCI VM ─────────────────────────────────────────────────
+  deploy:
+    name: Deploy to GCI VM
+    runs-on: ubuntu-latest
+    needs: [test, build]
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+
+            APP_DIR=~/MISEIA1-4-140-courses
+            mkdir -p "$APP_DIR"
+            cd "$APP_DIR"
+
+            # Pull latest code
+            if [ -d ".git" ]; then
+              git pull origin master
+            else
+              git clone https://github.com/${{ github.repository }}.git .
+            fi
+
+            # Write production env file
+            cat > .env.production << 'ENVEOF'
+            MONGODB_URI=${{ secrets.MONGODB_URI }}
+            MONGODB_DB=saas-cursos
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            MAILHOG_HOST=mailhog
+            MAIL_PORT=1025
+            NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
+            NODE_ENV=production
+            AWS_USERNAME=${{ secrets.AWS_USERNAME }}
+            AWS_PASSWORD=${{ secrets.AWS_PASSWORD }}
+            AWS_REGION=us-east-1
+            AWS_URL=http://rustfs:9000
+            AWS_BUCKET=saas-cursos-bucket
+            ENVEOF
+
+            # Build Docker image
+            docker build -t coursehub:latest .
+
+            # Restart container
+            docker-compose -f docker-compose.courses.yml down || true
+            docker-compose -f docker-compose.courses.yml up -d
+
+            echo "Deploy complete — coursehub container status:"
+            docker ps | grep coursehub || echo "WARNING: container not found"
