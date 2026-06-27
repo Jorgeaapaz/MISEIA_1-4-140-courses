@@ -85,7 +85,66 @@ courses/
 
 ---
 
-## Design Patterns / Architecture
+## Architecture
+
+### System Component Diagram
+
+```mermaid
+graph TD
+    Admin["👤 Admin\n(browser)"]
+    Student["👤 Student\n(browser)"]
+    GlobalCtx["GlobalContext\nlocalStorage JWT"]
+    NextPages["Next.js Pages\napp/ (React 19)"]
+    NextAPI["Next.js API Routes\napp/api/"]
+    AuthGuard["lib/apiAuth.ts\nrequireAuth / requireAdmin"]
+    LibAuth["lib/auth.ts\nJWT sign / verify"]
+    LibDB["lib/db.ts\nMongoDB Singleton"]
+    LibMail["lib/mail.ts\nNodemailer SMTP"]
+    MongoDB[(MongoDB\nsaas-cursos)]
+    Mailhog[Mailhog\nSMTP :1025]
+    RustFS[RustFS / S3\n:9000]
+
+    Admin -->|HTTPS| NextPages
+    Student -->|HTTPS| NextPages
+    NextPages <-->|React Context| GlobalCtx
+    GlobalCtx -->|Bearer token| NextAPI
+    NextPages -->|fetch| NextAPI
+    NextAPI --> AuthGuard
+    AuthGuard --> LibAuth
+    AuthGuard --> LibDB
+    LibDB --> MongoDB
+    NextAPI --> LibMail
+    LibMail --> Mailhog
+    NextAPI -.->|future: file upload| RustFS
+```
+
+### Magic Link Auth Flow
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant UI as Login Page
+    participant API as /api/auth/send-link
+    participant DB as MongoDB
+    participant Mail as Mailhog
+    participant Verify as /api/auth/verify
+    participant Ctx as GlobalContext
+
+    User->>UI: Enter email
+    UI->>API: POST { email }
+    API->>DB: Store magic_link JWT (15 min TTL)
+    API->>Mail: Send email with link
+    Mail-->>User: Email with /verify?token=...
+    User->>Verify: Click link (GET /verify)
+    Verify->>API: POST { token }
+    API->>DB: Check token (used=false, not expired)
+    API->>DB: Mark token used=true
+    API-->>Verify: { sessionJWT, user }
+    Verify->>Ctx: Save JWT to localStorage
+    Ctx-->>User: Redirect to /admin or /dashboard
+```
+
+## Design Patterns
 
 | Pattern | Where |
 |---|---|
