@@ -16,4 +16,5 @@ services:
       - "traefik.http.routers.coursehub.entrypoints=websecure"
       - "traefik.http.routers.coursehub.tls=true"
       - "traefik.http.routers.coursehub.tls.certresolver=cloudflare"
+      - "traefik.http.routers.coursehub.service=coursehub-svc"
       - "traefik.http.services.coursehub-svc.loadbalancer.server.port=30001"
