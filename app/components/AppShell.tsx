@@ -25,7 +25,7 @@ const adminLinks: NavLink[] = [
 
 const studentLinks: NavLink[] = [
   { href: '/dashboard', icon: '⊞', label: 'Mi Panel' },
-  { href: '/dashboard/courses', icon: '◎', label: 'Cursos' },
+  { href: '/dashboard', icon: '◎', label: 'Cursos' },
 ]
 
 export default function AppShell({ children, role, title, activeHref }: AppShellProps) {
