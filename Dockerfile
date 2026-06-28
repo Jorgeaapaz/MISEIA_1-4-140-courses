@@ -28,6 +28,6 @@ USER nextjs
 EXPOSE 30001
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s \
-  CMD wget -qO- http://localhost:30001/ || exit 1
+  CMD node -e "require('http').get('http://localhost:30001/',r=>process.exit(r.statusCode<500?0:1)).on('error',()=>process.exit(1))"
 
 CMD ["node", "server.js"]
